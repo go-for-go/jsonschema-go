@@ -304,6 +304,7 @@ type ReflectContext struct {
 	definitionRefs map[refl.TypeString]Ref
 	typeCycles     map[refl.TypeString]bool
 	rootDefName    string
+	jsonAPIRoot    bool
 }
 
 func (rc *ReflectContext) getDefinition(ref string) *Schema {

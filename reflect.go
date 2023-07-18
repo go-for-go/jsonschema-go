@@ -240,6 +240,7 @@ func (r *Reflector) Reflect(i interface{}, options ...func(rc *ReflectContext)) 
 	rc.Context = context.Background()
 	rc.DefinitionsPrefix = "#/definitions/"
 	rc.PropertyNameTag = "json"
+	rc.PropertyNameAdditionalTags = []string{"jsonapi"}
 	rc.Path = []string{"#"}
 	rc.typeCycles = make(map[refl.TypeString]bool)
 
@@ -349,6 +350,19 @@ func (r *Reflector) reflectDefer(defName string, typeString refl.TypeString, rc 
 	return s
 }
 
+func (r *Reflector) ifJsonApiStruct(t reflect.Type) bool {
+	if t.Kind() != reflect.Struct {
+		return false
+	}
+
+	for i := 0; i < t.NumField(); i++ {
+		if _, tagFound := t.Field(i).Tag.Lookup("jsonapi"); tagFound {
+			return true
+		}
+	}
+	return false
+}
+
 func (r *Reflector) reflect(i interface{}, rc *ReflectContext, keepType bool, parent *Schema) (schema Schema, err error) {
 	var (
 		t          = reflect.TypeOf(i)
@@ -383,6 +397,16 @@ func (r *Reflector) reflect(i interface{}, rc *ReflectContext, keepType bool, pa
 	}
 
 	t = refl.DeepIndirect(t)
+
+	if rc.jsonAPIRoot == false && r.ifJsonApiStruct(t) {
+		wrap := struct {
+			Data interface{} `json:"data"`
+		}{Data: i}
+		i = wrap
+		t = reflect.TypeOf(wrap)
+		v = reflect.ValueOf(wrap)
+		rc.jsonAPIRoot = true
+	}
 
 	if t == nil || t == typeOfEmptyInterface {
 		schema.Type = nil
@@ -865,8 +889,12 @@ func (r *Reflector) walkProperties(v reflect.Value, parent *Schema, rc *ReflectC
 		if field.PkgPath != "" {
 			continue
 		}
+		tagAttr := strings.Split(tag, ",")
 
-		propName := strings.Split(tag, ",")[0]
+		propName := tagAttr[0]
+		if propName == "attr" {
+			propName = tagAttr[1]
+		}
 		omitEmpty := strings.Contains(tag, ",omitempty")
 		required := false
 
@@ -972,8 +1000,30 @@ func (r *Reflector) walkProperties(v reflect.Value, parent *Schema, rc *ReflectC
 			parent.Properties = make(map[string]SchemaOrBool, 1)
 		}
 
-		parent.Properties[propName] = SchemaOrBool{
-			TypeObject: &propertySchema,
+		if tagAttr[0] == "attr" {
+			if _, ok := parent.Properties["attributes"]; !ok {
+				parent.Properties["attributes"] = SchemaOrBool{
+					TypeObject: &Schema{},
+				}
+			}
+			if parent.Properties["attributes"].TypeObject.Properties == nil {
+				parent.Properties["attributes"].TypeObject.Properties = make(map[string]SchemaOrBool, 1)
+			}
+			parent.Properties["attributes"].TypeObject.Properties[propName] = SchemaOrBool{
+				TypeObject: &propertySchema,
+			}
+		} else if tagAttr[0] == "primary" {
+			parent.Properties["id"] = SchemaOrBool{
+				TypeObject: &propertySchema,
+			}
+			ttype := SimpleType("string")
+			parent.Properties["type"] = SchemaOrBool{
+				TypeObject: &Schema{Type: &Type{SimpleTypes: &ttype}, Examples: []interface{}{tagAttr[1]}},
+			}
+		} else {
+			parent.Properties[propName] = SchemaOrBool{
+				TypeObject: &propertySchema,
+			}
 		}
 	}
 
