@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/go-for-go/jsonschema-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/swaggest/jsonschema-go"
 )
 
 func TestSchemaOrBool_JSONSchemaBytes(t *testing.T) {

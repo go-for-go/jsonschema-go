@@ -7,8 +7,8 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/go-for-go/jsonschema-go"
 	"github.com/swaggest/assertjson"
-	"github.com/swaggest/jsonschema-go"
 )
 
 // WeirdResp hides sample structure.

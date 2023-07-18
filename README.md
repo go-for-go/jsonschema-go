@@ -1,3 +1,7 @@
+## Important
+
+This fork is used for generation json-scheme from json-api structures
+
 # JSON Schema structures for Go
 
 <img align="right" width="100px" src="https://avatars0.githubusercontent.com/u/13019229?s=200&v=4">

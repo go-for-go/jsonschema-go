@@ -3,8 +3,8 @@ package jsonschema_test
 import (
 	"fmt"
 
+	"github.com/go-for-go/jsonschema-go"
 	"github.com/swaggest/assertjson"
-	"github.com/swaggest/jsonschema-go"
 )
 
 // ParentOfRawExposer is an example structure.

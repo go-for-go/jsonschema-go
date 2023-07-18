@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-for-go/jsonschema-go"
 	"github.com/stretchr/testify/require"
 	"github.com/swaggest/assertjson"
-	"github.com/swaggest/jsonschema-go"
 )
 
 func TestReflector_Reflect_generic(t *testing.T) {

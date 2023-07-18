@@ -3,8 +3,8 @@ package jsonschema_test
 import (
 	"testing"
 
+	"github.com/go-for-go/jsonschema-go"
 	"github.com/stretchr/testify/assert"
-	"github.com/swaggest/jsonschema-go"
 )
 
 func TestDate_MarshalText(t *testing.T) {

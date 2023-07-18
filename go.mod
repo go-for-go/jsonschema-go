@@ -1,4 +1,4 @@
-module github.com/swaggest/jsonschema-go
+module github.com/go-for-go/jsonschema-go
 
 go 1.18
 

@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-for-go/jsonschema-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/swaggest/assertjson"
-	"github.com/swaggest/jsonschema-go"
 )
 
 type Role struct {

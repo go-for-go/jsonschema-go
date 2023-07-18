@@ -5,9 +5,9 @@ import (
 	"io/ioutil"
 	"testing"
 
+	"github.com/go-for-go/jsonschema-go"
 	"github.com/stretchr/testify/require"
 	"github.com/swaggest/assertjson"
-	"github.com/swaggest/jsonschema-go"
 	"github.com/yudai/gojsondiff/formatter"
 )
 
