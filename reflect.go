@@ -1000,34 +1000,63 @@ func (r *Reflector) walkProperties(v reflect.Value, parent *Schema, rc *ReflectC
 			parent.Properties = make(map[string]SchemaOrBool, 1)
 		}
 
-		if tagAttr[0] == "attr" {
-			if _, ok := parent.Properties["attributes"]; !ok {
-				parent.Properties["attributes"] = SchemaOrBool{
-					TypeObject: &Schema{},
-				}
-			}
-			if parent.Properties["attributes"].TypeObject.Properties == nil {
-				parent.Properties["attributes"].TypeObject.Properties = make(map[string]SchemaOrBool, 1)
-			}
-			parent.Properties["attributes"].TypeObject.Properties[propName] = SchemaOrBool{
-				TypeObject: &propertySchema,
-			}
-		} else if tagAttr[0] == "primary" {
-			parent.Properties["id"] = SchemaOrBool{
-				TypeObject: &propertySchema,
-			}
-			ttype := SimpleType("string")
-			parent.Properties["type"] = SchemaOrBool{
-				TypeObject: &Schema{Type: &Type{SimpleTypes: &ttype}, Examples: []interface{}{tagAttr[1]}},
-			}
-		} else {
+		switch tagAttr[0] {
+		case "relation":
+			addJsonApiRelation(tagAttr[1], parent, &propertySchema)
+		case "attr":
+			addJsonApiAttr(tagAttr[1], parent, &propertySchema)
+		case "primary":
+			addJsonApiPrimary(tagAttr[1], parent, &propertySchema)
+		default:
 			parent.Properties[propName] = SchemaOrBool{
 				TypeObject: &propertySchema,
 			}
 		}
 	}
-
 	return nil
+}
+
+func addJsonApiRelation(name string, parent, node *Schema) {
+	if _, ok := parent.Properties["relationships"]; !ok {
+		parent.Properties["relationships"] = SchemaOrBool{
+			TypeObject: &Schema{},
+		}
+	}
+	if parent.Properties["relationships"].TypeObject.Properties == nil {
+		parent.Properties["relationships"].TypeObject.Properties = make(map[string]SchemaOrBool, 1)
+	}
+	parent.Properties["relationships"].TypeObject.Properties[name] = SchemaOrBool{
+		TypeObject: &Schema{Properties: map[string]SchemaOrBool{
+			"data": SchemaOrBool{
+				TypeObject: node,
+			},
+		},
+		},
+	}
+}
+
+func addJsonApiAttr(name string, parent, node *Schema) {
+	if _, ok := parent.Properties["attributes"]; !ok {
+		parent.Properties["attributes"] = SchemaOrBool{
+			TypeObject: &Schema{},
+		}
+	}
+	if parent.Properties["attributes"].TypeObject.Properties == nil {
+		parent.Properties["attributes"].TypeObject.Properties = make(map[string]SchemaOrBool, 1)
+	}
+	parent.Properties["attributes"].TypeObject.Properties[name] = SchemaOrBool{
+		TypeObject: node,
+	}
+}
+
+func addJsonApiPrimary(name string, parent, node *Schema) {
+	parent.Properties["id"] = SchemaOrBool{
+		TypeObject: node,
+	}
+	ttype := SimpleType("string")
+	parent.Properties["type"] = SchemaOrBool{
+		TypeObject: &Schema{Type: &Type{SimpleTypes: &ttype}, Examples: []interface{}{name}},
+	}
 }
 
 func checkInlineValue(propertySchema *Schema, field reflect.StructField, tag string, setter func(interface{}) *Schema) error {
