@@ -422,6 +422,16 @@ func (r *Reflector) reflect(i interface{}, rc *ReflectContext, keepType bool, pa
 	typeString = refl.GoType(t)
 	defName = r.defName(rc, t)
 
+	if rc.jsonAPIRoot == false && r.ifJsonApiStruct(t) {
+		wrap := JsonApiWrap{Data: i}
+		i = wrap
+		t = reflect.TypeOf(wrap)
+		v = reflect.ValueOf(wrap)
+		rc.jsonAPIRoot = true
+		typeString = refl.GoType(t)
+		defName = r.defName(rc, t) + "." + defName
+	}
+
 	if mappedTo, found := r.typesMap[t]; found {
 		t = refl.DeepIndirect(reflect.TypeOf(mappedTo))
 		v = reflect.ValueOf(mappedTo)
