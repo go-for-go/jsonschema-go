@@ -33,6 +33,10 @@ const (
 
 type sentinelError string
 
+type JsonApiWrap struct {
+	Data interface{} `json:"data"`
+}
+
 func (e sentinelError) Error() string {
 	return string(e)
 }
@@ -402,9 +406,7 @@ func (r *Reflector) reflect(i interface{}, rc *ReflectContext, keepType bool, pa
 		rc.jsonAPIRoot = true
 	}
 	if rc.jsonAPIRoot == false && r.ifJsonApiStruct(t) {
-		wrap := struct {
-			Data interface{} `json:"data"`
-		}{Data: i}
+		wrap := JsonApiWrap{Data: i}
 		i = wrap
 		t = reflect.TypeOf(wrap)
 		v = reflect.ValueOf(wrap)
