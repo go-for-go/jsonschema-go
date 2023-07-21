@@ -405,13 +405,6 @@ func (r *Reflector) reflect(i interface{}, rc *ReflectContext, keepType bool, pa
 	if t.Kind() == reflect.Slice {
 		rc.jsonAPIRoot = true
 	}
-	if rc.jsonAPIRoot == false && r.ifJsonApiStruct(t) {
-		wrap := JsonApiWrap{Data: i}
-		i = wrap
-		t = reflect.TypeOf(wrap)
-		v = reflect.ValueOf(wrap)
-		rc.jsonAPIRoot = true
-	}
 
 	if t == nil || t == typeOfEmptyInterface {
 		schema.Type = nil
