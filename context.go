@@ -299,12 +299,13 @@ type ReflectContext struct {
 	// SkipUnsupportedProperties skips properties with unsupported types (func, chan, etc...) instead of failing.
 	SkipUnsupportedProperties bool
 
-	Path           []string
-	definitions    map[refl.TypeString]*Schema // list of all definition objects
-	definitionRefs map[refl.TypeString]Ref
-	typeCycles     map[refl.TypeString]bool
-	rootDefName    string
-	jsonAPIRoot    bool
+	Path            []string
+	definitionIndex []refl.TypeString
+	definitions     map[refl.TypeString]*Schema // list of all definition objects
+	definitionRefs  map[refl.TypeString]Ref
+	typeCycles      map[refl.TypeString]bool
+	rootDefName     string
+	jsonAPIRoot     bool
 }
 
 func (rc *ReflectContext) getDefinition(ref string) *Schema {

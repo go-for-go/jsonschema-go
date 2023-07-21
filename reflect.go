@@ -260,8 +260,9 @@ func (r *Reflector) Reflect(i interface{}, options ...func(rc *ReflectContext)) 
 	if err == nil && len(rc.definitions) > 0 {
 		schema.Definitions = make(map[string]SchemaOrBool, len(rc.definitions))
 
-		for typeString, def := range rc.definitions {
-			def := def
+		for _, typeString := range rc.definitionIndex {
+			def := rc.definitions[typeString]
+
 			ref := rc.definitionRefs[typeString]
 
 			if rc.CollectDefinitions != nil {
@@ -334,7 +335,7 @@ func (r *Reflector) reflectDefer(defName string, typeString refl.TypeString, rc 
 		rc.definitions = make(map[refl.TypeString]*Schema, 1)
 		rc.definitionRefs = make(map[refl.TypeString]Ref, 1)
 	}
-
+	rc.definitionIndex = append(rc.definitionIndex, typeString)
 	rc.definitions[typeString] = &schema
 	ref := Ref{Path: rc.DefinitionsPrefix, Name: defName}
 	rc.definitionRefs[typeString] = ref
@@ -397,7 +398,9 @@ func (r *Reflector) reflect(i interface{}, rc *ReflectContext, keepType bool, pa
 	}
 
 	t = refl.DeepIndirect(t)
-
+	if t.Kind() == reflect.Slice {
+		rc.jsonAPIRoot = true
+	}
 	if rc.jsonAPIRoot == false && r.ifJsonApiStruct(t) {
 		wrap := struct {
 			Data interface{} `json:"data"`
