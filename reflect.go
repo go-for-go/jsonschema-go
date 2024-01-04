@@ -382,7 +382,10 @@ func (r *Reflector) mod(orig any, tOrig reflect.Type, vOrig reflect.Value) (refl
 	if tOrig.Kind() == reflect.Struct {
 		for i := 0; i < tOrig.NumField(); i++ {
 			if _, tagFound := tOrig.Field(i).Tag.Lookup("jsonapi"); !tagFound {
-				f = append(f, tOrig.Field(i))
+				//@todo implement Embedded struct with jsonapi fields if needed
+				if vOrig.FieldByName(tOrig.Field(i).Name).Kind() != reflect.Struct {
+					f = append(f, tOrig.Field(i))
+				}
 			}
 		}
 	}
