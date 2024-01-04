@@ -368,6 +368,33 @@ func (r *Reflector) ifJsonApiStruct(t reflect.Type) bool {
 	return false
 }
 
+func (r *Reflector) mod(orig any, tOrig reflect.Type, vOrig reflect.Value) (reflect.Type, reflect.Value) {
+	wrap := JsonApiWrap{Data: orig}
+
+	f := []reflect.StructField{}
+
+	tWrap := reflect.TypeOf(wrap)
+
+	if dataField, ok := tWrap.FieldByName("Data"); ok {
+		f = append(f, dataField)
+	}
+
+	if tOrig.Kind() == reflect.Struct {
+		for i := 0; i < tOrig.NumField(); i++ {
+			if _, tagFound := tOrig.Field(i).Tag.Lookup("jsonapi"); !tagFound {
+				f = append(f, tOrig.Field(i))
+			}
+		}
+	}
+
+	newType := reflect.StructOf(f)
+
+	newValue := reflect.New(newType).Elem()
+	newValue.FieldByName("Data").Set(vOrig)
+
+	return newType, newValue
+}
+
 func (r *Reflector) reflect(i interface{}, rc *ReflectContext, keepType bool, parent *Schema) (schema Schema, err error) {
 	var (
 		t          = reflect.TypeOf(i)
@@ -416,13 +443,11 @@ func (r *Reflector) reflect(i interface{}, rc *ReflectContext, keepType bool, pa
 	defName = r.defName(rc, t)
 
 	if rc.jsonAPIRoot == false && r.ifJsonApiStruct(t) {
-		wrap := JsonApiWrap{Data: i}
-		i = wrap
-		t = reflect.TypeOf(wrap)
-		v = reflect.ValueOf(wrap)
-		rc.jsonAPIRoot = true
+		t, v = r.mod(i, t, v)
+
 		typeString = refl.GoType(t)
-		defName = r.defName(rc, t) + "." + defName
+		defName = "Data." + defName
+		rc.jsonAPIRoot = true
 	}
 
 	if mappedTo, found := r.typesMap[t]; found {
